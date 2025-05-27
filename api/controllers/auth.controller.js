@@ -27,6 +27,7 @@ export const signup = async (req, res, next) => {
 
   try {
     await newUser.save();
+    console.log('Signup successful');    
     res.json('Signup successful');
   } catch (error) {
     next(error);
@@ -34,11 +35,14 @@ export const signup = async (req, res, next) => {
 };
 
 export const signin = async (req, res, next) => {
+    console.log('now inside the Signin page');
+
   const { email, password } = req.body;
 
   if (!email || !password || email === '' || password === '') {
     next(errorHandler(400, 'All fields are required'));
   }
+    console.log('now inside the Signin page2');
 
   try {
     const validUser = await User.findOne({ email });
@@ -55,6 +59,7 @@ export const signin = async (req, res, next) => {
     );
 
     const { password: pass, ...rest } = validUser._doc;
+    console.log('Signin successful');
 
     res
       .status(200)
