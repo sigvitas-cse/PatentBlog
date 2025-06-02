@@ -1,8 +1,6 @@
 import { Alert, Button, Modal, TextInput } from 'flowbite-react';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { CircularProgressbar } from 'react-circular-progressbar';
-import 'react-circular-progressbar/dist/styles.css';
 import {
   updateStart,
   updateSuccess,
@@ -14,100 +12,32 @@ import {
 } from '../redux/user/userSlice';
 import { HiOutlineExclamationCircle } from 'react-icons/hi';
 import { Link } from 'react-router-dom';
+import { CircularProgressbar } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
+import ImageUpload from '../ImageUpload';
 
 export default function DashProfile() {
   const { currentUser, error, loading } = useSelector((state) => state.user);
-  const [imageFile, setImageFile] = useState(null);
-  const [imageFileUrl, setImageFileUrl] = useState(null);
-  const [imageFileUploadProgress, setImageFileUploadProgress] = useState(null);
-  const [imageFileUploadError, setImageFileUploadError] = useState(null);
-  const [imageFileUploading, setImageFileUploading] = useState(false);
+  const [formData, setFormData] = useState({});
   const [updateUserSuccess, setUpdateUserSuccess] = useState(null);
   const [updateUserError, setUpdateUserError] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({});
-  const filePickerRef = useRef();
+  const [imageUploadError, setImageUploadError] = useState(null);
+  const [imageUploadProgress, setImageUploadProgress] = useState(null);
+  const [imageUploading, setImageUploading] = useState(false);
   const dispatch = useDispatch();
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) { // Updated to 10MB
-        setImageFileUploadError('Could not upload image (File must be less than 10MB)');
-        return;
-      }
-      setImageFile(file);
-      setImageFileUrl(URL.createObjectURL(file));
-      setImageFileUploadError(null);
+  // Handle image upload events from ImageUpload component
+  const handleImageUpload = (secureUrl, error, progress, isUploading) => {
+    setImageUploading(isUploading);
+    setImageUploadProgress(progress);
+    if (error) {
+      setImageUploadError('Failed to upload image. Please try again.');
+      return;
     }
-  };
-
-  useEffect(() => {
-    if (imageFile) {
-      uploadImage();
-    }
-  }, [imageFile]);
-
-  const uploadImage = async () => {
-    setImageFileUploading(true);
-    setImageFileUploadError(null);
-    setImageFileUploadProgress(0);
-
-    // Simulate progress
-    const simulateProgress = setInterval(() => {
-      setImageFileUploadProgress((prev) => {
-        const newProgress = prev + 10;
-        if (newProgress >= 90) {
-          clearInterval(simulateProgress);
-          return 90;
-        }
-        return newProgress;
-      });
-    }, 500);
-
-    try {
-      const formData = new FormData();
-      formData.append('file', imageFile);
-      formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
-      formData.append('folder', 'patent_images');
-      formData.append('tags', 'patent,user-upload');
-
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/dvnizqou1/image/upload`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
-
-      // console.log("Clod Name from .env File:",import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
-      // console.log("API Key from .env File:",import.meta.env.VITE_CLOUDINARY_API_KEY);
-      // console.log("API_SECRET from .env File:",import.meta.env.VITE_CLOUDINARY_API_SECRET);
-      // console.log("UPLOAD_PRESET from .env File:",import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
-
-      
-      const data = await response.json();
-
-      clearInterval(simulateProgress);
-      setImageFileUploadProgress(100);
-
-      if (!response.ok) {
-        throw new Error(data.error?.message || 'Image upload failed');
-      }
-
-      setImageFileUrl(data.secure_url);
-      setFormData((prev) => ({ ...prev, profilePicture: data.secure_url }));
-    } catch (error) {
-      setImageFileUploadError(
-        error.message.includes('File size')
-          ? 'Could not upload image (File must be less than 10MB)'
-          : 'Image upload failed'
-      );
-      setImageFileUploadProgress(null);
-      setImageFile(null);
-      setImageFileUrl(null);
-    } finally {
-      setImageFileUploading(false);
+    setImageUploadError(null);
+    if (secureUrl) {
+      setFormData({ ...formData, profilePicture: secureUrl });
     }
   };
 
@@ -123,7 +53,7 @@ export default function DashProfile() {
       setUpdateUserError('No changes made');
       return;
     }
-    if (imageFileUploading) {
+    if (imageUploading) {
       setUpdateUserError('Please wait for image to upload');
       return;
     }
@@ -188,21 +118,11 @@ export default function DashProfile() {
     <div className='max-w-lg mx-auto p-3 w-full'>
       <h1 className='my-7 text-center font-semibold text-3xl'>Profile</h1>
       <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
-        <input
-          type='file'
-          accept='image/*'
-          onChange={handleImageChange}
-          ref={filePickerRef}
-          hidden
-        />
-        <div
-          className='relative w-32 h-32 self-center cursor-pointer shadow-md overflow-hidden rounded-full'
-          onClick={() => filePickerRef.current.click()}
-        >
-          {imageFileUploadProgress && (
+        <div className='relative w-32 h-32 self-center cursor-pointer shadow-md overflow-hidden rounded-full'>
+          {imageUploadProgress && imageUploadProgress < 100 && (
             <CircularProgressbar
-              value={imageFileUploadProgress || 0}
-              text={`${imageFileUploadProgress}%`}
+              value={imageUploadProgress || 0}
+              text={`${imageUploadProgress}%`}
               strokeWidth={5}
               styles={{
                 root: {
@@ -213,21 +133,22 @@ export default function DashProfile() {
                   left: 0,
                 },
                 path: {
-                  stroke: `rgba(62, 152, 199, ${imageFileUploadProgress / 100})`,
+                  stroke: `rgba(62, 152, 199, ${imageUploadProgress / 100})`,
                 },
               }}
             />
           )}
           <img
-            src={imageFileUrl || currentUser.profilePicture}
+            src={formData.profilePicture || currentUser.profilePicture}
             alt='user'
-            className={`rounded-full w-full h-full object-cover border-8 border-[lightgray] ${
-              imageFileUploadProgress && imageFileUploadProgress < 100 && 'opacity-60'
-            }`}
+            className={`rounded-full w-full h-full object-cover border-8 border-[lightgray] ${imageUploading ? 'opacity-60' : ''}`}
           />
         </div>
-        {imageFileUploadError && (
-          <Alert color='failure'>{imageFileUploadError}</Alert>
+        <ImageUpload onImageUpload={handleImageUpload} />
+        {imageUploadError && (
+          <Alert color='failure' className='mt-2'>
+            {imageUploadError}
+          </Alert>
         )}
         <TextInput
           type='text'
@@ -253,9 +174,9 @@ export default function DashProfile() {
           type='submit'
           gradientDuoTone='purpleToBlue'
           outline
-          disabled={loading || imageFileUploading}
+          disabled={loading || imageUploading}
         >
-          {loading ? 'Loading...' : 'Update'}
+          {loading || imageUploading ? 'Loading...' : 'Update'}
         </Button>
         {currentUser.isAdmin && (
           <Link to={'/create-post'}>

@@ -17,15 +17,15 @@ export default function Home() {
   return (
     <div>
       <div className='flex flex-col gap-6 p-10  px-3 max-w-6xl mx-auto '>
-        <h1 className='text-3xl font-bold lg:text-6xl pt-10'>Welcome to my Blog</h1>
-        <p className='text-gray-500 text-xs sm:text-sm'>
+        <h1 className='text-3xl font-bold lg:text-6xl pt-10'>US Patent Quality</h1>
+        {/* <p className='text-gray-500 text-xs sm:text-sm'>
           Welcome to my patent blog! Here you'll find a wide range of articles,
           tutorials, and resources dedicated to helping you understand and navigate
           the world of patents. Whether you're curious about the patent application
           process, international patent laws, protecting your inventions, or staying
           updated on recent innovations, there's something here for everyone.
           Dive in and expand your knowledge of intellectual property and innovation.
-        </p>
+        </p> */}
 
         <Link
           to='/search'
@@ -33,9 +33,9 @@ export default function Home() {
         >
           View all posts
         </Link>
-        <div className='p-3 bg-amber-100 dark:bg-slate-700'>
+        {/* <div className='p-3 bg-amber-100 dark:bg-slate-700'>
           <CallToAction />
-        </div>
+        </div> */}
       </div>
 
       <div className='max-w-6xl mx-auto p-3 flex flex-col gap-8 py-3'>
