@@ -54,9 +54,17 @@ export default function Header() {
         to='/'
         className='self-center whitespace-nowrap text-sm sm:text-xl font-semibold dark:text-white'
       >
-        <span className='px-2 py-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg text-white'>
+        {/* <span className='px-2 py-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg text-white'>
+          USPatent
+        </span> */}
+        <span className='px-2 py-1 bg-gradient-to-r from-blue-600 via-purple-600 to-fuchsia-500 rounded-lg text-white'>
           USPatent
         </span>
+        {/* <span className='px-2 py-1 bg-gradient-to-r from-teal-500 via-emerald-500 to-green-500 rounded-lg text-white'>
+          USPatent
+        </span> */}
+
+
         {/* Blog */}
       </Link>
       <form onSubmit={handleSubmit}>
